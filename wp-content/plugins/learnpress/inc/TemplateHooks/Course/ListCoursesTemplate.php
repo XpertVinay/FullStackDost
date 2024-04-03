@@ -96,7 +96,7 @@ class ListCoursesTemplate {
 		$total_rows          = 0;
 		$courses             = Courses::get_courses( $filter, $total_rows );
 		$total_pages         = LP_Database::get_total_pages( $filter->limit, $total_rows );
-		$skin                = learn_press_get_courses_layout();
+		$skin                = $settings['skin'] ?? learn_press_get_courses_layout();
 		$paged               = $settings['paged'] ?? 1;
 		$listCoursesTemplate = self::instance();
 
@@ -174,7 +174,7 @@ class ListCoursesTemplate {
 	 *
 	 * @return string
 	 * @since 4.2.5.8
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	public static function render_course( LP_Course $course, array $settings = [] ): string {
 		$singleCourseTemplate = SingleCourseTemplate::instance();
@@ -183,8 +183,8 @@ class ListCoursesTemplate {
 			$html_course_wrapper = apply_filters(
 				'learn-press/list-courses/layout/item/wrapper',
 				[
-					'<li class="course">'       => '</li>',
-					'<div class="course-item">' => '</div>',
+					'<li class="course">'                                                       => '</li>',
+					'<div class="course-item" data-id="' . esc_attr( $course->get_id() ) . '">' => '</div>',
 				],
 				$course,
 				$settings

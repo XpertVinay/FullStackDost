@@ -11,19 +11,17 @@ use LearnPress\Helpers\Template;
  */
 class LP_Template_Profile extends LP_Abstract_Template {
 	public function header( $user ) {
-		$profile = LP_Global::profile();
-
-		if ( $profile->get_user()->is_guest() ) {
-			return;
-		}
-
 		learn_press_get_template( 'profile/header.php', array( 'user' => $user ) );
 	}
 
 	public function sidebar() {
-		$profile = LP_Global::profile();
-
+		$profile = LP_Profile::instance();
 		if ( $profile->get_user()->is_guest() ) {
+			return;
+		}
+
+		if ( $profile->get_user_current()->is_guest()
+		     && 'yes' !== LP_Profile::get_option_publish_profile() ) {
 			return;
 		}
 
@@ -31,38 +29,23 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	/**
-	 * @param LP_Profile $user
+	 * @param LP_Profile $profile
+	 *
+	 * @since 3.0.0
+	 * @version 1.0.1
 	 */
-	public function content( LP_Profile $user ) {
-		$profile = LP_Global::profile();
-		$user_id = get_current_user_id();
-
-		if ( $profile->get_user()->is_guest() ) {
+	public function content( LP_Profile $profile ) {
+		$user          = $profile->get_user();
+		$current_tab   = $profile->get_current_tab();
+		$user_can_view = $profile->current_user_can( 'view-tab-' . $current_tab );
+		if ( ! $user_can_view ) {
 			return;
 		}
 
-		$current_tab = $profile->get_current_tab();
-
-		if ( 'settings' === $current_tab && ( ! $user_id || $user_id != $profile->get_user()->get_id() ) ) {
+		if ( $profile->get_user_current()->is_guest() ) {
 			return;
 		}
 
-		$privacy = get_user_meta( $user->get_user()->get_id(), '_lp_profile_privacy', true );
-
-		$permission_restrict = apply_filters(
-			'lp/profile/content/permission-restrict',
-			! current_user_can( ADMIN_ROLE ) &&
-			( $user->get_user()->get_id() != $user_id && empty( $privacy ) )
-		);
-
-		if ( $permission_restrict ) {
-			return;
-		}
-
-		$profile = learn_press_get_profile();
-		/**
-		 * LP_Profile_Tabs
-		 */
 		$tabs        = $profile->get_tabs();
 		$tab_key     = $profile->get_current_tab();
 		$profile_tab = $tabs->get( $tab_key );
@@ -79,9 +62,8 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	public function tabs( $user = null ) {
-		$profile = LP_Global::profile();
-
-		if ( $profile->get_user()->is_guest() ) {
+		$profile = LP_Profile::instance();
+		if ( $profile->get_user_current()->is_guest() ) {
 			return;
 		}
 
@@ -186,25 +168,11 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	/**
-	 * @author tungnx
-	 * @deprecated 4.1.6
+	 * @deprecated 4.2.6.2
 	 */
-	/*public function dashboard_statistic() {
-		$user      = $this->get_user();
-		$query     = LP_Profile::instance()->query_courses( 'purchased' );
-		$counts    = $query['counts'];
-		$statistic = array(
-			'enrolled_courses'  => isset( $counts['all'] ) ? $counts['all'] : 0,
-			'active_courses'    => isset( $counts['in-progress'] ) ? $counts['in-progress'] : 0,
-			'completed_courses' => isset( $counts['finished'] ) ? $counts['finished'] : 0,
-			'total_courses'     => count_user_posts( $user->get_id(), LP_COURSE_CPT ),
-			'total_users'       => learn_press_count_instructor_users( $user->get_id() ),
-		);
-
-		learn_press_get_template( 'profile/tabs/courses/general-statistic', compact( 'statistic' ) );
-	}*/
-
 	public function dashboard_featured_courses() {
+		_deprecated_function( __METHOD__, '4.2.6.2' );
+		die;
 		$profile_privacy = $this->get_user()->get_extra_data(
 			'profile_privacy',
 			array(
@@ -232,7 +200,12 @@ class LP_Template_Profile extends LP_Abstract_Template {
 		learn_press_get_template( 'profile/dashboard/featured-courses', (array) $data );
 	}
 
+	/**
+	 * @deprecated 4.2.6.2
+	 */
 	public function dashboard_latest_courses() {
+		_deprecated_function( __METHOD__, '4.2.6.2' );
+		die;
 		$profile_privacy = $this->get_user()->get_extra_data(
 			'profile_privacy',
 			array(
@@ -259,9 +232,7 @@ class LP_Template_Profile extends LP_Abstract_Template {
 
 	public function order_details() {
 		$profile = LP_Profile::instance();
-
-		$order = $profile->get_view_order();
-
+		$order   = $profile->get_view_order();
 		if ( false === $order ) {
 			return;
 		}
@@ -292,13 +263,15 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	public function dashboard_not_logged_in() {
-		$profile = LP_Global::profile();
-
-		if ( ! $profile->get_user()->is_guest() ) {
+		if ( is_user_logged_in() ) {
 			return;
 		}
 
-		if ( 'yes' === LP_Settings::instance()->get( 'enable_login_profile' ) || 'yes' === LP_Settings::instance()->get( 'enable_register_profile' ) ) {
+		if ( ! LP_Profile::instance()->get_user()->is_guest() ) {
+			return;
+		}
+
+		if ( 'yes' === LP_Settings::get_option( 'enable_login_profile' ) ) {
 			return;
 		}
 
@@ -306,13 +279,15 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	public function login_form() {
-		$profile = LP_Global::profile();
-
-		if ( ! $profile->get_user()->is_guest() ) {
+		if ( is_user_logged_in() ) {
 			return;
 		}
 
-		if ( 'yes' !== LP_Settings::instance()->get( 'enable_login_profile' ) ) {
+		if ( ! LP_Profile::instance()->get_user()->is_guest() ) {
+			return;
+		}
+
+		if ( 'yes' !== LP_Settings::get_option( 'enable_login_profile', 'no' ) ) {
 			return;
 		}
 
@@ -320,13 +295,15 @@ class LP_Template_Profile extends LP_Abstract_Template {
 	}
 
 	public function register_form() {
-		$profile = LP_Global::profile();
-
-		if ( ! $profile->get_user()->is_guest() ) {
+		if ( is_user_logged_in() ) {
 			return;
 		}
 
-		if ( 'yes' !== LP_Settings::instance()->get( 'enable_register_profile' ) || ! get_option( 'users_can_register' ) ) {
+		if ( ! LP_Profile::instance()->get_user()->is_guest() ) {
+			return;
+		}
+
+		if ( 'yes' !== LP_Settings::get_option( 'enable_register_profile' ) || ! get_option( 'users_can_register' ) ) {
 			return;
 		}
 
@@ -335,8 +312,13 @@ class LP_Template_Profile extends LP_Abstract_Template {
 
 	/**
 	 * @return bool|LP_User|mixed
+	 * @deprecated 4.2.6.4
 	 */
 	protected function get_user() {
+		_deprecated_function( __METHOD__, '4.2.6.4' );
+
+		return false;
+
 		return LP_Profile::instance()->get_user();
 	}
 }

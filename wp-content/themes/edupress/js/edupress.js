@@ -91,11 +91,4 @@ jQuery(document).ready(function($) {
 		sync: "#ilovewp-featured-tabs"
 	});
 
-	const imgCont = document.getElementsByClassName('image-container');
-	const buttonCont = document.getElementsByClassName('button-containet');
-	imgCont[0].style.display = 'block';
-	buttonCont[0].style.paddingLeft = '9rem';
-	const avtarCont = document.getElementById('simple-local-avatar-ratings');
-	avtarCont.style.marginTop = '8rem';
-
 });

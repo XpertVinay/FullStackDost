@@ -36,7 +36,7 @@ class PageSpeed_Api {
 	 *
 	 * @var string
 	 */
-	private $google_client_json = '{"web":{"client_id":"887173527583-mvtpm465985h8pokb3os715s9s3emv78.apps.googleusercontent.com","project_id":"w3tc-testing","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["google/authorize-in/","google/authorize-out/","google/update-token/","google/get-token/"]}}';
+	private $google_client_json = '{"web":{"client_id":"","project_id":"w3tc-testing","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["google/authorize-in/","google/authorize-out/","google/update-token/","google/get-token/"]}}';
 
 	/**
 	 * W3TC API server base URL. Overwritten by W3TC_API2_URL constant.

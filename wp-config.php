@@ -23,10 +23,10 @@
 define( 'DB_NAME', 'fsd' );
 
 /** Database username */
-define( 'DB_USER', 'root' );
+define( 'DB_USER', 'innovikaAI' );
 
 /** Database password */
-define( 'DB_PASSWORD', '' );
+define( 'DB_PASSWORD', 'Tradpe#54321$' );
 
 /** Database hostname */
 define( 'DB_HOST', 'localhost' );
